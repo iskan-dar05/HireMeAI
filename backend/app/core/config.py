@@ -1,6 +1,6 @@
 # FILE: app/core/config.py
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
 	APP_NAME: str = "ResumeAPI"
