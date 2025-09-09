@@ -24,6 +24,8 @@ class Settings(BaseSettings):
 
 	PROJECT_DOMAIN: str
 
+	GROQ_API_KEY: str
+
 	class Config:
 		env_file = ".env"
 
