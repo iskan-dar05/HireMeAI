@@ -7,9 +7,10 @@ import Index from "./pages/Index";
 import Templates from "./pages/Templates";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import CreateCV from "./pages/CreateCV";
+import CreateResume from "./pages/CreateResume";
 import NotFound from "./pages/NotFound";
 import ResumeViewer from "./pages/ResumeViewer";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -24,9 +25,18 @@ const App = () => (
           <Route path="/templates" element={<Templates />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/create" element={<CreateCV />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* Protected Routes */}
+
+          <Route path="/create-resume" element={
+            <ProtectedRoute>
+              <CreateResume />
+            </ProtectedRoute>
+          } />
           <Route path="/resume-viewer" element={<ResumeViewer />} />
+
+
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

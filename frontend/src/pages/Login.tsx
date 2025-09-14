@@ -6,17 +6,22 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useState } from "react";
 import { login } from "@/services/auth"
+import { useNavigate } from "react-router-dom"
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("")
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvents) => {
     e.preventDefault()
     try{
       const res = await login({ email, password })
       console.log("Login: ", res)
-      alert("login success")
+      localStorage.setItem("token", res.access_token)
+      // alert("login success")
+      navigate("/create-resume")
+
     }catch(err){
       console.error(err)
       alert("login Failed")

@@ -1,4 +1,4 @@
-import { api } from "./api"
+import { api } from "./axios"
 
 
 export interface RegisterData {
@@ -22,10 +22,6 @@ export const register = async (data: RegisterData) => {
 
 export const login = async (data: LoginData) => {
 	const res = await api.post("/auth/login", data);
-
-	// save token in localstorage
-	localStorage.setItem("token", res.data.access_token);
-	localStorage.setItem("user", res.data)
 	return res.data;
 }
 

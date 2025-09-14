@@ -1,4 +1,4 @@
-import { api } from "./api"
+import { api } from "./axios"
 
 
 export interface FormData{
@@ -15,8 +15,8 @@ export interface FormData{
 }
 
 
-export const createCV = async (data: FormData)=>{
-	const res = await api.post("/ai/create-resume", data)
+export const createResume = async (data: FormData)=>{
+	const res = await api.post("/resume/create-resume", data)
 	return res.data
 }
 

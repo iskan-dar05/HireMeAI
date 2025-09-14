@@ -5,10 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import { useState } from "react";
-import { createCV } from "@/services/ai_api"
+import { createResume } from "@/services/resume"
 import { useNavigate } from "react-router-dom"
 
-const CreateCV = () => {
+const CreateResume = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     fullname: "",
@@ -30,12 +30,12 @@ const CreateCV = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try{
-      const res = await createCV(formData);
+      const res = await createResume(formData);
       console.log("Craeet CV success", res)
       alert("Create CV successful!");
       if(res.download_url)
       {
-        navigate(`/resume-viewer?url=${encodeURIComponent(res.download_url)}`);
+        navigate(`/resume-viewer?url=${encodeURIComponent(res.view_url)}`);
       }
     }catch(err)
     {
@@ -200,4 +200,4 @@ const CreateCV = () => {
   );
 };
 
-export default CreateCV;
+export default CreateResume;

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.user import UserCreate , UserOut, Token, UserLogin
 from app.models.user import User
-from app.core.security import hash_password, verify_password
+from app.core.security import hash_password, verify_password, create_access_token
 
 
 
@@ -47,7 +47,7 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
 
 	# Create JWT token
 	access_token = create_access_token(data={"sub": str(user.id)})
-	return {"access_token": access_token, "token_type": "bearer"},
+	return {"access_token": access_token}
 
 
 

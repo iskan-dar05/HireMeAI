@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.routes.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.ai import router as ai_router
+from app.routes.resume import router as resume_router
 
 app = FastAPI(title="HireMeAI API")
 
@@ -22,7 +22,7 @@ app.add_middleware(
 
 # include auth routes
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
-app.include_router(ai_router, prefix="/ai", tags=["AI"])
+app.include_router(resume_router, prefix="/resume", tags=["Resume"])
 
 
 @app.get("/")
