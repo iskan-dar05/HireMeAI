@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.user import UserCreate , UserOut, Token, UserLogin
@@ -50,7 +50,12 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
 	return {"access_token": access_token}
 
 
-
+@router.post("/logout")
+def logout(authorization: str = Header(None)):
+	if authorization and authorization.startswith("Bearer "):
+		token = authorization.split(" ")[1]
+		return {"message": "Token received", "token": token}
+	return {"message": "No Bearer token found in Authorization header"}
 
 
 

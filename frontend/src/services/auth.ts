@@ -26,6 +26,11 @@ export const login = async (data: LoginData) => {
 }
 
 
+export const logout = async () => {
+	const res = await api.post("/auth/logout", {});
+	console.log(res.data)
+}
+
 export const getCurrentUser = async () => {
 	const res = await api.get("/users/me")
 }
