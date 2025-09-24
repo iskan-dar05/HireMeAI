@@ -11,6 +11,7 @@ import CreateResume from "./pages/CreateResume";
 import NotFound from "./pages/NotFound";
 import ResumeViewer from "./pages/ResumeViewer";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Dashboard from "./pages/Dashboard.tsx"
 
 const queryClient = new QueryClient();
 
@@ -34,7 +35,7 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/resume-viewer" element={<ResumeViewer />} />
-
+	  <Route path="/dashboard" element={<Dashboard />} />
 
 
           <Route path="*" element={<NotFound />} />

@@ -20,7 +20,8 @@ export const createResume = async (data: FormData)=>{
 	return res.data
 }
 
-
+export const fetchResumes = async () => {
+	const res = await api.get("resume/fetch-resumes"
 
 
 
