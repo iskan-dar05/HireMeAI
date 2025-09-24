@@ -17,17 +17,18 @@ router = APIRouter()
 @router.post("/create-resume", response_model=ResumeOut)
 def create_resume(resume_info: ResumeCreate, request: Request, current_user: User = Depends(get_current_user)):
 	user_info = {
-		"fullname": resume_info.fullname,
-		"email": resume_info.email,
-		"phone": resume_info.phone,
-		"location": resume_info.location,
-		"profession": resume_info.profession,
-		"skills": resume_info.skills,
-		"passion": resume_info.passion,
-		"job_desc": resume_info.job_desc,
-		"experience": resume_info.experience,
-		"education": resume_info.education
-	}
+        "fullname": resume_info.fullname,
+        "email": resume_info.email,
+        "phone": resume_info.phone,
+        "location": resume_info.location,
+        "profession": resume_info.profession,
+        "image": resume_info.image,
+        "skills": resume_info.skills,
+        "passion": resume_info.passion,
+        "job_desc": resume_info.job_desc,
+        "experience": [exp.dict() for exp in resume_info.experience],
+        "education": [edu.dict() for edu in resume_info.education],
+    }
 
 	job_desc = resume_info.job_desc
 

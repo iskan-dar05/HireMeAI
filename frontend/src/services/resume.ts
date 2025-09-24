@@ -21,7 +21,7 @@ export const createResume = async (data: FormData)=>{
 }
 
 export const fetchResumes = async () => {
-	const res = await api.get("resume/fetch-resumes"
-
+	const res = await api.get("resume/fetch-resumes")
+}
 
 
