@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useState } from "react";
-import { login } from "@/services/auth"
+import { login, scheduleTokenRefresh } from "@/services/auth"
 import { useNavigate } from "react-router-dom"
 
 const Login = () => {
@@ -13,13 +13,17 @@ const Login = () => {
   const [password, setPassword] = useState("")
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvents) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try{
       const res = await login({ email, password })
       console.log("Login: ", res)
-      localStorage.setItem("token", res.access_token)
+      localStorage.setItem("access_token", res.access_token)
+      localStorage.setItem("refresh_token", res.refresh_token)
+
+      scheduleTokenRefresh(res.access_token)
       // alert("login success")
+      console.log("✅ Login success, navigating now...")
       navigate("/create-resume")
 
     }catch(err){

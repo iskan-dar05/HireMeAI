@@ -34,8 +34,18 @@ const App = () => (
               <CreateResume />
             </ProtectedRoute>
           } />
-          <Route path="/resume-viewer" element={<ResumeViewer />} />
-	  <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route path="/resume-viewer" element={
+            <ProtectedRoute>
+              <ResumeViewer />
+            </ProtectedRoute>
+          } />
+
+	        <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
 
 
           <Route path="*" element={<NotFound />} />

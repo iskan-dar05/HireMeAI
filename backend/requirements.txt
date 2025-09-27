@@ -14,3 +14,4 @@ python-dotenv
 groq
 fpdf
 redis
+argon2_cffi

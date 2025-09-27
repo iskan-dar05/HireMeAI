@@ -13,7 +13,7 @@ const isTokenValid = (token) => {
 
 
 const ProtectedRoute = ({ children }) => {
-	const token = localStorage.getItem("token")
+	const token = localStorage.getItem("access_token")
 
 	if(!token || !isTokenValid(token)){
 		return <Navigate to="/login" replace />;

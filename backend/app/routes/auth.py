@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.schemas.user import UserCreate , UserOut, Token, UserLogin
+from app.schemas.user import UserCreate , UserOut, Token, UserLogin, LogoutRequest
 from app.models.user import User
-from app.core.security import hash_password, verify_password, create_access_token
-
+from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
+from app.core.redis_client import redis_client
 
 
 
@@ -47,15 +47,37 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
 
 	# Create JWT token
 	access_token = create_access_token(data={"sub": str(user.id)})
-	return {"access_token": access_token}
+	refresh_token = create_refresh_token(user.id)
+
+
+	return {
+		"access_token": access_token,
+		"refresh_token": refresh_token,
+		"token_type": "bearer"
+	}
+
+
+@router.post("/refresh")
+def refresh_token(refresh_token: str):
+	user_id = verify_refresh_token(refresh_token)
+	access_token = create_access_token(data={"sub": str(user.id)})
+	return {
+		"access_token": access_token,
+		"token_type": "bearer"
+	}
+
 
 
 @router.post("/logout")
-def logout(authorization: str = Header(None)):
-	if authorization and authorization.startswith("Bearer "):
-		token = authorization.split(" ")[1]
-		return {"message": "Token received", "token": token}
-	return {"message": "No Bearer token found in Authorization header"}
+def logout(payload: LogoutRequest):
+    refresh_token = payload.refresh_token
+    print("REFRESH TOKEN::::::::::::", refresh_token)
+
+    deleted = redis_client.delete(f"refresh_token:{refresh_token}")
+    if deleted == 0:
+        raise HTTPException(status_code=400, detail="Invalid refresh token")
+
+    return {"message": "Logged out successfully"}
 
 
 
