@@ -1,10 +1,9 @@
 from groq import Groq
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
-
-
 
 def generate_resume(job_desc: str, user_info: dict):
     api_key = os.getenv("GROQ_API_KEY")
@@ -15,9 +14,45 @@ def generate_resume(job_desc: str, user_info: dict):
 
     prompt_template = f"""
     You are an expert resume writer. 
-    Create a resume that is concise, ATS-friendly, and professional.
-    Format it clearly with sections like SUMMARY, SKILLS, EXPERIENCE, and EDUCATION. 
-    Align the resume with the given job description.
+    Your task is to create a professional, ATS-friendly, and concise resume.
+    The resume should be aligned with the given job description **but never copy-paste from it**.
+    Instead, rephrase and generalize requirements so the resume sounds original and tailored.
+
+    Instructions:
+    -------------
+    1. Use the candidate information as the primary source.
+    2. If the job description mentions a skill, tool, or requirement missing from the candidate data, 
+       intelligently incorporate it into the resume (but in your own words, not exactly as written).
+    3. Do not copy sentences from the job description. 
+       Instead, generate natural wording that reflects the candidate's fit.
+    4. Make the resume realistic (don’t invent degrees or jobs), 
+       but you can expand on responsibilities, achievements, and skills to strengthen the profile.
+    5. Keep formatting clean and ATS-friendly, with clear sections.
+    6. Expand short skills like "Python" into "Experienced in Python for backend APIs, 
+       data processing, and automation."  
+
+    Output requirement:
+    -------------------
+    ⚠️ VERY IMPORTANT: Return the resume as a **valid JSON object ONLY**.
+    - Do not include markdown fences (like ```json).
+    - Do not add explanations or commentary.
+    - Follow this exact schema:
+
+    {{
+      "fullname": "string",
+      "email": "string",
+      "phone": "string",
+      "location": "string",
+      "profession": "string",
+      "skills": ["string", "string"],
+      "experience": [
+        {{"title": "string", "company": "string", "description": "string", "dates": "string"}}
+      ],
+      "education": [
+        {{"school": "string", "degree": "string", "field": "string", "gpa": "string", "dates": "string"}}
+      ],
+      "passion": "string"
+    }}
 
     Candidate Information:
     ----------------------
@@ -40,30 +75,6 @@ def generate_resume(job_desc: str, user_info: dict):
     Job Description:
     ----------------
     {job_desc}
-
-    Output:
-    --------
-    A structured resume text in the following format:
-
-    [FULL NAME]  
-    [PROFESSIONAL TITLE]  
-    📧 [EMAIL] | 📞 [PHONE] | 📍 [LOCATION]  
-
-    **Professional Summary**  
-    - Tailored 2–3 sentence summary highlighting strengths and alignment with job description.
-
-    **Skills**  
-    - Skill 1  
-    - Skill 2  
-    - Skill 3  
-
-    **Experience**  
-    [Job Title] – [Company], [Years]  
-    - Achievement 1  
-    - Achievement 2  
-
-    **Education**  
-    [Degree] – [Institution], [Year]
     """
 
     chat_completion = client.chat.completions.create(
@@ -74,4 +85,16 @@ def generate_resume(job_desc: str, user_info: dict):
         model="llama-3.3-70b-versatile",
     )
 
-    return chat_completion.choices[0].message.get("content", "").strip()
+    raw_response = chat_completion.choices[0].message.content.strip()
+
+    # Cleanup in case Groq adds ```json fences
+    if raw_response.startswith("```"):
+        raw_response = raw_response.strip("`").replace("json", "", 1).strip()
+
+    # Try parsing JSON
+    try:
+        resume_json = json.loads(raw_response)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"⚠️ Groq did not return valid JSON.\nResponse:\n{raw_response}") from e
+
+    return resume_json

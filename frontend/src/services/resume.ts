@@ -1,7 +1,7 @@
 import { api } from "./axios"
 
 
-export interface FormData{
+export interface FormData {
 	fullname: string,
 	email: string,
 	phone: string,
@@ -11,7 +11,8 @@ export interface FormData{
 	experience: string,
 	job_desc: string,
 	skills: string,
-	education: string
+	education: string,
+	image: File | null
 }
 
 

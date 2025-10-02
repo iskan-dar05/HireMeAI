@@ -10,8 +10,8 @@ import Signup from "./pages/Signup";
 import CreateResume from "./pages/CreateResume";
 import NotFound from "./pages/NotFound";
 import ResumeViewer from "./pages/ResumeViewer";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard.tsx"
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Dashboard from "./pages/Dashboard"
 
 const queryClient = new QueryClient();
 

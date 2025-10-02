@@ -6,6 +6,8 @@ import { ArrowRight, FileText, Zap, Download, Star } from "lucide-react";
 import template1 from "@/assets/template-1.jpg";
 import template2 from "@/assets/template-2.jpg";
 import template3 from "@/assets/template-3.jpg";
+import { isTokenValid } from "@/components/ProtectedRoute"
+import { Navigate } from "react-router-dom"
 
 const Index = () => {
   const features = [
@@ -31,8 +33,9 @@ const Index = () => {
     { name: "Creative", image: template2 },
     { name: "Executive", image: template3 }
   ];
-
-  return (
+  if(!isTokenValid)
+  {
+    return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
@@ -161,6 +164,9 @@ const Index = () => {
       </section>
     </div>
   );
+  }
+  return <Navigate to="/dashboard" replace />;
+  
 };
 
 export default Index;

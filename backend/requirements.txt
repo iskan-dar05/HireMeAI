@@ -12,6 +12,8 @@ email-validator
 python-multipart
 python-dotenv
 groq
-fpdf
+fpdf2
 redis
 argon2_cffi
+jinja2
+weasyprint

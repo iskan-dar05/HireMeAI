@@ -20,7 +20,8 @@ const CreateResume = () => {
     experience: "",
     job_desc: "",
     skills: "",
-    education: ""
+    education: "",
+    image: null as File | null,
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -29,20 +30,29 @@ const CreateResume = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const formDataObj = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if(value) {
+        formDataObj.append(key, value as any)
+      }
+    })
     try{
-      const res = await createResume(formData);
+      const res = await createResume(formDataObj);
       console.log("Craeet CV success", res)
       alert("Create CV successful!");
-      if(res.download_url)
-      {
-        navigate(`/resume-viewer?url=${encodeURIComponent(res.view_url)}`);
-      }
+      
+
+      // if(res.download_url)
+      // {
+      //   navigate(`/resume-viewer?url=${encodeURIComponent(res.view_url)}`);
+      // }
     }catch(err)
     {
       console.error(err);
       alert("Create CV Failed");
     }
   }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -178,9 +188,24 @@ const CreateResume = () => {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="image">Image</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  className="cursor-pointer"
+                  onChange={(e) => {
+                    if(e.target.files && e.target.files[0]) {
+                      handleInputChange("image", e.target.files[0])
+                    }
+                  }}
+                />
+              </div>
+
               <div className="flex gap-4 pt-6">
                 <Button 
-                  variant="outline" 
+                  variant="outline"
                   className="flex-1 transition-all hover:shadow-card"
                 >
                   Save Draft

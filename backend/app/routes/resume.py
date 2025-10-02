@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.schemas.ai import ResumeCreate, ResumeOut
 from services.create_resume import generate_resume
 from app.utils.pdf_export import save_to_pdf
 from app.models.user import User
+import tempfile
 from app.core.security import get_current_user
 import os
+
+from app.core.templates import templates
 
 
 
@@ -14,36 +17,67 @@ import os
 
 router = APIRouter()
 
-@router.post("/create-resume", response_model=ResumeOut)
-def create_resume(resume_info: ResumeCreate, request: Request, current_user: User = Depends(get_current_user)):
-	user_info = {
-        "fullname": resume_info.fullname,
-        "email": resume_info.email,
-        "phone": resume_info.phone,
-        "location": resume_info.location,
-        "profession": resume_info.profession,
-        "image": resume_info.image,
-        "skills": resume_info.skills,
-        "passion": resume_info.passion,
-        "job_desc": resume_info.job_desc,
-        "experience": [exp.dict() for exp in resume_info.experience],
-        "education": [edu.dict() for edu in resume_info.education],
+@router.post("/create-resume")
+async def create_resume(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+	fullname: str = Form(...),
+    email: str = Form(...),
+    phone: str = Form(None),
+    location: str = Form(None),
+    profession: str = Form(...),
+    passion: str = Form(...),
+    job_desc: str = Form(None),
+    skills: str = Form(None),
+    experience: str = Form(None),  # could send JSON string and parse it
+    education: str = Form(None),   # same here
+    image: UploadFile = File(None)
+
+    ):
+
+    tmp_path = None
+
+    if image:
+        contents = await image.read()
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+            tmp.write(contents)
+            tmp_path = tmp.name
+
+    user_info = {
+        "fullname": fullname,
+        "email": email,
+        "phone": phone,
+        "location": location,
+        "profession": profession,
+        "image": image,
+        "skills": skills,
+        "passion": passion,
+        "experience": experience,
+        "education": education,
+        "image": tmp_path
     }
 
-	job_desc = resume_info.job_desc
+    job_desc = job_desc
 
-	resume_text = generate_resume(job_desc, user_info)
-	pdf_path = save_to_pdf(resume_text)
+    resume_text = generate_resume(job_desc, user_info)
+    if hasattr(resume_text, "content"):
+        resume_text = resume_text.content
+    # pdf_path = save_to_pdf(resume_text)
 
-	base_url = str(request.base_url).rstrip("/")
-	download_url = f"{base_url}/resume/download-resume?file={pdf_path}"
-	view_url = f"{base_url}/resume/view-resume?file={pdf_path}"
+    # base_url = str(request.base_url).rstrip("/")
+    # download_url = f"{base_url}/resume/download-resume?file={pdf_path}"
+    # view_url = f"{base_url}/resume/view-resume?file={pdf_path}"
 
-	return {
-		"download_url": download_url,
-		"view_url": view_url
-		}
+    # return {
+	# 	"download_url": download_url,
+	# 	"view_url": view_url
+	# 	}
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "user_info": resume_text}
+    )
 
+    # return {"resume_text": resume_text}
 
 @router.get("/view-resume")
 def view_resume(file: str, current_user: User = Depends(get_current_user)):

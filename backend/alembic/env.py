@@ -11,6 +11,8 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.database import engine, Base
 from app.models import user
+from app.models import template
+from app.models import user_cv
 
 
 

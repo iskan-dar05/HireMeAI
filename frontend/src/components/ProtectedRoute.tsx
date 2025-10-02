@@ -1,8 +1,9 @@
 import { Navigate } from "react-router-dom"
 import { jwtDecode } from "jwt-decode"
 
-const isTokenValid = (token) => {
+export const isTokenValid = () => {
 	try{
+		const token = localStorage.getItem("access_token")
 		const decode = jwtDecode(token);
 		const now = Date.now() / 1000
 		return decode.exp && decode.exp > now;
@@ -12,14 +13,13 @@ const isTokenValid = (token) => {
 }
 
 
-const ProtectedRoute = ({ children }) => {
-	const token = localStorage.getItem("access_token")
+export const ProtectedRoute = ({ children }) => {
+	
 
-	if(!token || !isTokenValid(token)){
+	if(!isTokenValid()){
 		return <Navigate to="/login" replace />;
 	}
 
 	return children;
 };
 
-export default ProtectedRoute;

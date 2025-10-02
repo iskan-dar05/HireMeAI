@@ -19,5 +19,6 @@ class ResumeCreate(BaseModel):
 
 
 class ResumeOut(BaseModel):
-	download_url: str
-	view_url: str
+	# download_url: str
+	# view_url: str
+    resume_text: str
