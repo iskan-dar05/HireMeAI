@@ -1,100 +1,98 @@
+import json
+import os
 from groq import Groq
 from dotenv import load_dotenv
-import os
-import json
+from app.utils.json_extract import merge_layout, simplify_layout
 
 load_dotenv()
 
-def generate_resume(job_desc: str, user_info: dict):
+
+def extract_json_from_text(text: str) -> str:
+    """Extract valid JSON portion from text (handles if model added explanations)."""
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1:
+        return text[start:end + 1]
+    raise ValueError("⚠️ No JSON object found in model response.")
+
+
+def generate_resume(job_desc: str, user_info: dict, path: str):
+    """Send layout + job data to Groq and return updated layout with new text."""
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise ValueError("⚠️ GROQ_API_KEY not found in .env file")
 
     client = Groq(api_key=api_key)
 
-    prompt_template = f"""
-    You are an expert resume writer. 
-    Your task is to create a professional, ATS-friendly, and concise resume.
-    The resume should be aligned with the given job description **but never copy-paste from it**.
-    Instead, rephrase and generalize requirements so the resume sounds original and tailored.
+    simplified = simplify_layout(path)
 
-    Instructions:
-    -------------
-    1. Use the candidate information as the primary source.
-    2. If the job description mentions a skill, tool, or requirement missing from the candidate data, 
-       intelligently incorporate it into the resume (but in your own words, not exactly as written).
-    3. Do not copy sentences from the job description. 
-       Instead, generate natural wording that reflects the candidate's fit.
-    4. Make the resume realistic (don’t invent degrees or jobs), 
-       but you can expand on responsibilities, achievements, and skills to strengthen the profile.
-    5. Keep formatting clean and ATS-friendly, with clear sections.
-    6. Expand short skills like "Python" into "Experienced in Python for backend APIs, 
-       data processing, and automation."  
 
-    Output requirement:
-    -------------------
-    ⚠️ VERY IMPORTANT: Return the resume as a **valid JSON object ONLY**.
-    - Do not include markdown fences (like ```json).
-    - Do not add explanations or commentary.
-    - Follow this exact schema:
+    prompt = f"""
+You are an expert resume editor.
+You must respond ONLY with valid JSON (no commentary, no markdown).
 
+You are given:
+1. Candidate info (may be incomplete).
+2. A job description.
+3. The simplified JSON layout of a resume (with text, fonts, and positions).
+
+Your job:
+- Improve the text based on the job description and candidate info.
+- Keep the exact same structure, same pages, and same text_blocks.
+- Modify only the "text" fields.
+- Do not remove or add blocks.
+
+Return only JSON with this format:
+{{
+  "pages": [
     {{
-      "fullname": "string",
-      "email": "string",
-      "phone": "string",
-      "location": "string",
-      "profession": "string",
-      "skills": ["string", "string"],
-      "experience": [
-        {{"title": "string", "company": "string", "description": "string", "dates": "string"}}
-      ],
-      "education": [
-        {{"school": "string", "degree": "string", "field": "string", "gpa": "string", "dates": "string"}}
-      ],
-      "passion": "string"
+      "page_number": 1,
+      "text_blocks": [
+        {{"index": 0, "text": "Improved text", "font": "Helvetica", "size": 12, "color": 0, "bbox": [0,0,0,0]}},
+        ...
+      ]
     }}
+  ]
+}}
 
-    Candidate Information:
-    ----------------------
-    Name: {user_info.get("fullname")}
-    Email: {user_info.get("email")}
-    Phone: {user_info.get("phone")}
-    Location: {user_info.get("location")}
-    Professional Title: {user_info.get("profession")}
-    Skills: {user_info.get("skills")}
-    Passion: {user_info.get("passion")}
+Candidate Info:
+{json.dumps(user_info, indent=2)}
 
-    Work Experience:
-    ----------------
-    {user_info.get("experience")}
+Job Description:
+{job_desc}
 
-    Education:
-    ----------
-    {user_info.get("education")}
-
-    Job Description:
-    ----------------
-    {job_desc}
-    """
+Current Resume Layout (simplified):
+{json.dumps(simplified, indent=2)}
+"""
 
     chat_completion = client.chat.completions.create(
         messages=[
-            {"role": "system", "content": "You are an expert resume writer."},
-            {"role": "user", "content": prompt_template},
+            {"role": "system", "content": "You are a precise JSON generator. Output only valid JSON."},
+            {"role": "user", "content": prompt},
         ],
         model="llama-3.3-70b-versatile",
     )
 
     raw_response = chat_completion.choices[0].message.content.strip()
 
-    # Cleanup in case Groq adds ```json fences
+    # Clean up common wrappers
     if raw_response.startswith("```"):
         raw_response = raw_response.strip("`").replace("json", "", 1).strip()
 
-    # Try parsing JSON
+    # Extract JSON from text if model adds explanations
     try:
-        resume_json = json.loads(raw_response)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"⚠️ Groq did not return valid JSON.\nResponse:\n{raw_response}") from e
+        cleaned_json = extract_json_from_text(raw_response)
+        new_layout_simplified = json.loads(cleaned_json)
+    except Exception as e:
+        raise ValueError(f"⚠️ Could not extract valid JSON from model:\n{raw_response}") from e
 
-    return resume_json
+    # Merge new text into original layout
+    with open('path', 'w', encoding="utf-8") as f:
+        updated_layout = merge_layout(json.load(f), new_layout_simplified)
+
+    # Optional: Save the updated layout
+    with open("layout_updated.json", "w", encoding="utf-8") as f:
+        json.dump(updated_layout, f, indent=2, ensure_ascii=False)
+
+    print("✅ Resume layout updated successfully.")
+    return updated_layout

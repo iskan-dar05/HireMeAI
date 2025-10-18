@@ -3,13 +3,18 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.schemas.ai import ResumeCreate, ResumeOut
 from services.create_resume import generate_resume
-from app.utils.pdf_export import save_to_pdf
+from app.utils.json_extract import simplify_layout
 from app.models.user import User
 import tempfile
 from app.core.security import get_current_user
 import os
 
-from app.core.templates import templates
+from app.utils.pdf_extract import extract_layout_from_pdf
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+TEMPLATE_PATH = BASE_DIR / "templates" / "layout.json"
+
 
 
 
@@ -50,7 +55,6 @@ async def create_resume(
         "phone": phone,
         "location": location,
         "profession": profession,
-        "image": image,
         "skills": skills,
         "passion": passion,
         "experience": experience,
@@ -60,24 +64,12 @@ async def create_resume(
 
     job_desc = job_desc
 
-    resume_text = generate_resume(job_desc, user_info)
-    if hasattr(resume_text, "content"):
-        resume_text = resume_text.content
-    # pdf_path = save_to_pdf(resume_text)
+    new_layout = generate_resume(job_desc, user_info, str(TEMPLATE_PATH))
+    # pdf_path = save_to_pdf(new_layout, str(TEMPLATE_PATH))
 
-    # base_url = str(request.base_url).rstrip("/")
-    # download_url = f"{base_url}/resume/download-resume?file={pdf_path}"
-    # view_url = f"{base_url}/resume/view-resume?file={pdf_path}"
+    
 
-    # return {
-	# 	"download_url": download_url,
-	# 	"view_url": view_url
-	# 	}
-    return templates.TemplateResponse(
-        "index.html", {"request": request, "user_info": resume_text}
-    )
-
-    # return {"resume_text": resume_text}
+    return {"message": "create success"}
 
 @router.get("/view-resume")
 def view_resume(file: str, current_user: User = Depends(get_current_user)):
