@@ -1,0 +1,3 @@
+import Link from 'next/link'
+import { ImagePlus, Palette } from 'lucide-react'
+export default function DesignsPage(){return <div><div className="page-toolbar"><div><h2 className="page-title">Design library</h2><p className="subtle">Save reference layouts and reuse the properties your renderer supports.</p></div><button className="primary-button"><ImagePlus size={16}/> Upload reference</button></div><div className="empty-panel"><div className="empty-icon"><Palette size={21}/></div><h3>Your library is empty</h3><p>Upload a PNG, JPEG, or WebP reference to extract its layout. The frontend will send it to <code>POST /api/v1/cv-designs/extract</code>.</p><Link href="/dashboard/create-cv" className="secondary-button">Continue to create a CV</Link></div></div>}
